@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: streamlit
-          image: sha256:1f60f1ad1d3d87a6453c7a610080abaf50d51d6955ce837013f12a88249b8329
+          image: REPLACE_WITH_ECR_IMAGE
           ports:
             - name: http
               containerPort: 8501
