@@ -1,0 +1,13 @@
+.git
+.gitignore
+.terraform
+*.tfstate
+*.tfstate.*
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.env
+*.mp3
+*.mp4
