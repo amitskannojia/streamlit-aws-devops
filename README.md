@@ -402,3 +402,8 @@ I would use HTTPS, restrict Jenkins access, apply least-privilege IAM policies, 
 ## F. Final Interview Summary
 
 “My project demonstrates how source control, automated testing, container image management, Kubernetes deployment and AWS networking fit together in a CI/CD workflow. I can explain the pipeline stages, validate deployments using Kubernetes commands, and troubleshoot problems using Jenkins logs, pod events and AWS permissions. I also understand which infrastructure was created manually and why Terraform validation alone is not proof of a fully automated infrastructure deployment.”
+
+
+## CI/CD Verification
+
+GitHub webhook and Jenkins pipeline verification performed in the AWS DevOps lab.
