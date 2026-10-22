@@ -154,21 +154,21 @@ The exact Terraform files may differ depending on the implementation. The commit
 ## 6. Terraform Infrastructure as Code
 
 Terraform is used to define and provision the AWS infrastructure required by the project.
-
 ### AWS resources
 
 - **Amazon VPC:** Provides the network for the EKS environment.
-- **Subnets:** Provide subnet placement for the EKS cluster and worker nodes.
-- **Internet Gateway and route tables:** Provide the configured network routes.
-- **Security groups:** Control network traffic to AWS resources.
-- **IAM roles and policies:** Provide permissions to AWS services and automation components.
+- **Two public subnets:** Host the EKS worker nodes in the configured Availability Zones.
+- **Internet Gateway and public route table:** Provide the configured internet route.
+- **Security groups:** Control network traffic to the EKS cluster and worker nodes.
+- **IAM roles and policies:** Provide permissions for EKS, worker nodes, and Jenkins automation.
 - **Amazon ECR:** Stores the application's Docker images.
 - **Amazon EKS cluster:** Provides the managed Kubernetes control plane.
 - **EKS add-ons:** Provide cluster networking, DNS, and other required functionality.
 - **Managed node group:** Provides EC2 worker nodes for Kubernetes workloads.
-- **Jenkins IAM instance profile:** Allows Jenkins on EC2 to access permitted AWS APIs through its attached IAM role.
+- **Jenkins IAM instance profile:** Allows Jenkins to access permitted AWS APIs through its attached IAM role.
 - **EKS access configuration:** Allows the configured Jenkins identity to authenticate and access the cluster.
 
+**Networking note:** This lab uses public subnets and an Internet Gateway. It does not create private subnets or a NAT Gateway. Review the security group rules and public exposure before adapting this lab for production.
 ### Terraform workflow
 
 The Terraform workflow includes:
@@ -235,6 +235,7 @@ Jenkins applies Kubernetes manifests with the correct ECR image URI and waits fo
 
 The deployment is verified using Kubernetes commands to check pods, services, rollout status, HPA, and Ingress.
 
+
 ## 8. GitHub Webhook Integration
 
 A GitHub webhook connects repository changes to Jenkins.
@@ -242,6 +243,19 @@ A GitHub webhook connects repository changes to Jenkins.
 When a developer pushes a commit, GitHub sends an event to the configured Jenkins endpoint. Jenkins uses the event to trigger the configured pipeline.
 
 The webhook must point to the correct Jenkins URL, and Jenkins must be reachable from GitHub. For production use, secure the endpoint with HTTPS and restrict access appropriately.
+
+### Prerequisites
+
+- Configure the GitHub webhook to reach your Jenkins endpoint.
+- Configure Jenkins with the appropriate pipeline job and repository.
+- Ensure the Jenkins instance is reachable by GitHub and the webhook is configured to trigger the pipeline.
+- Configure the AWS Load Balancer Controller separately from the EKS cluster provisioning.
+- Create or configure the controller's IAM role with the appropriate permissions and EKS OIDC trust relationship.
+- Configure the Kubernetes service account in the `kube-system` namespace with the correct IAM role annotation.
+- Verify that the AWS Load Balancer Controller is running before expecting the Kubernetes Ingress to provision an AWS Application Load Balancer.
+
+**Important:** Creating the EKS cluster does not automatically configure the GitHub webhook or complete the AWS Load Balancer Controller setup. These components must be configured and verified separately.
+
 
 ## 9. Kubernetes Configuration
 

@@ -9,3 +9,19 @@ __pycache__/
 .pytest_cache/
 .env
 .DS_Store
+
+# Terraform local files and environment-specific configuration
+.terraform/
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+tfplan
+*.tfplan
+crash.log
+crash.*.log
+
+# Environment-specific AWS Load Balancer Controller configuration
+aws-load-balancer-controller-service-account.yaml
+load-balancer-trust-policy.json

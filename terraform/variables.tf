@@ -1,43 +1,69 @@
 variable "aws_region" {
-  description = "AWS region for the project"
+  description = "AWS region for the lab"
   type        = string
   default     = "ap-south-1"
 }
 
 variable "project_name" {
-  description = "Project name used for resource naming and tags"
+  description = "Short project name used in AWS resource names"
   type        = string
-  default     = "streamlit-devops"
+  default     = "streamlit"
+}
+
+variable "cluster_name" {
+  description = "EKS cluster name"
+  type        = string
+  default     = "streamlit-eks"
+}
+
+variable "node_group_name" {
+  description = "EKS managed node group name"
+  type        = string
+  default     = "streamlit-nodegroup"
 }
 
 variable "vpc_cidr" {
-  description = "CIDR range for the VPC"
+  description = "VPC IPv4 CIDR"
   type        = string
   default     = "10.0.0.0/16"
 }
 
-variable "public_subnet_cidrs" {
-  description = "CIDR ranges for public subnets"
-  type        = list(string)
-
-  default = [
-    "10.0.1.0/24",
-    "10.0.2.0/24"
-  ]
-}
-
-variable "private_subnet_cidrs" {
-  description = "CIDR ranges for private subnets"
-  type        = list(string)
-
-  default = [
-    "10.0.11.0/24",
-    "10.0.12.0/24"
-  ]
-}
-
-variable "ecr_repository_name" {
-  description = "Name of the Amazon ECR repository"
+variable "admin_cidr" {
+  description = "Your public IPv4 address in CIDR notation, for example 203.0.113.10/32"
   type        = string
-  default     = "streamlit-app"
+
+  validation {
+    condition     = can(cidrnetmask(var.admin_cidr))
+    error_message = "admin_cidr must be a valid IPv4 CIDR such as 203.0.113.10/32."
+  }
+}
+
+variable "kubernetes_version" {
+  description = "EKS Kubernetes version"
+  type        = string
+  default     = "1.35"
+}
+
+variable "instance_type" {
+  description = "EC2 instance type for worker nodes"
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "desired_nodes" {
+  description = "Desired number of worker nodes"
+  type        = number
+  default     = 2
+}
+
+variable "min_nodes" {
+  description = "Minimum worker nodes"
+  type        = number
+  default     = 2
+}
+
+variable "max_nodes" {
+  description = "Maximum worker nodes"
+  type        = number
+  default     = 3
 }
