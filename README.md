@@ -455,6 +455,58 @@ I used Terraform to provision AWS infrastructure, including networking, IAM reso
 
 GitHub webhooks trigger the pipeline on repository changes. Kubernetes Deployment and Service resources manage the application, HPA is configured for horizontal pod scaling, and Ingress integrates with the AWS Load Balancer Controller to expose the application through an ALB.
 
+## 16. Final End-to-End Verification
+
+**Verification date:** 24 October 2026
+
+The following checks were confirmed during the lab:
+
+- GitHub webhook delivery reported successful.
+- A GitHub README change triggered the Jenkins pipeline.
+- The Jenkins build finished with `SUCCESS`.
+- The pipeline covers source checkout, testing, AWS/EKS verification, Docker image build, Amazon ECR push, and EKS deployment.
+- The application had previously returned HTTP 200 through the AWS Application Load Balancer.
+- The application was previously verified with two healthy pods, and HPA/metrics checks were performed.
+
+### Verify the latest deployment
+
+Run these commands from an environment with the required AWS and Kubernetes access:
+
+```bash
+kubectl rollout status deployment/streamlit-app -n streamlit
+kubectl get pods -n streamlit
+kubectl get service -n streamlit
+kubectl get hpa -n streamlit
+kubectl get ingress streamlit-ingress -n streamlit
+```
+
+If webhook delivery succeeds but Jenkins does not start a build, check **Jenkins Job → Configure → Build Triggers** and enable **GitHub hook trigger for GITScm polling**. Also verify the configured repository URL and branch.
+
+## 17. Implementation Checklist
+
+1. **GitHub:** Confirm the application code, dependencies, tests, Dockerfile, Jenkinsfile, Kubernetes manifests, and Terraform files are committed.
+2. **IAM bootstrap:** Verify the EC2 instance uses the intended IAM role. Run `aws sts get-caller-identity`. Do not store AWS access keys in source files.
+3. **Terraform:** Run `terraform init`, `terraform fmt -check -recursive`, `terraform validate`, and `terraform plan`. Review the plan before applying.
+4. **EKS:** Confirm the cluster is active, worker nodes are `Ready`, and Jenkins has the required EKS permissions.
+5. **ECR:** Confirm the repository exists and Jenkins can push the application image.
+6. **Jenkins:** Run the pipeline and review each stage in Console Output.
+7. **Webhook:** Confirm successful GitHub delivery and automatic pipeline triggering.
+8. **Load balancing:** Verify the AWS Load Balancer Controller is healthy and the Ingress has an ALB hostname.
+9. **Application:** Verify rollout status, pods, service endpoints, HPA metrics, and application response.
+10. **Security and cleanup:** Restrict Jenkins access, protect Terraform state, and identify the correct resources before deleting anything.
+
+## 18. Known Limitations and Security Notes
+
+- This project is a learning lab, not a production-ready architecture.
+- The documented network design uses public subnets and an Internet Gateway; it does not create private subnets or a NAT Gateway.
+- Jenkins was verified over HTTP on port 8080. Restrict access to trusted IP addresses and configure HTTPS before longer-term use.
+- Verify whether the AWS Load Balancer Controller's IAM role and OIDC configuration are included in Terraform or configured separately.
+- AWS resource names, image tags, endpoints, and costs may change between runs. Use current AWS and Kubernetes outputs as the source of truth.
+- Before running `terraform destroy`, verify the active workspace, state file, and planned changes. Do not destroy infrastructure based only on old terminal output or documentation.
+
+
+
+
 I also troubleshot an image-pull failure by examining Kubernetes events and correcting the container image reference. This project helped me develop practical skills in Terraform, AWS IAM, Jenkins, Docker, ECR, EKS, Kubernetes, and CI/CD troubleshooting."
 
 
