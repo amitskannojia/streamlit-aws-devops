@@ -456,3 +456,7 @@ I used Terraform to provision AWS infrastructure, including networking, IAM reso
 GitHub webhooks trigger the pipeline on repository changes. Kubernetes Deployment and Service resources manage the application, HPA is configured for horizontal pod scaling, and Ingress integrates with the AWS Load Balancer Controller to expose the application through an ALB.
 
 I also troubleshot an image-pull failure by examining Kubernetes events and correcting the container image reference. This project helped me develop practical skills in Terraform, AWS IAM, Jenkins, Docker, ECR, EKS, Kubernetes, and CI/CD troubleshooting."
+
+
+
+GitHub webhook CI/CD test
