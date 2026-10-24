@@ -171,6 +171,22 @@ Terraform is used to define and provision the AWS infrastructure required by the
 **Networking note:** This lab uses public subnets and an Internet Gateway. It does not create private subnets or a NAT Gateway. Review the security group rules and public exposure before adapting this lab for production.
 ### Terraform workflow
 
+### Terraform-managed infrastructure and IAM
+
+Terraform provisions the VPC, public subnets, Internet Gateway, route table associations, security groups, EKS cluster, managed node group, EKS add-ons, ECR repository, and the project's main IAM roles and EKS access entries.
+
+The initial EC2 bootstrap role is created before Terraform is run because Terraform requires AWS credentials with sufficient permissions to create the infrastructure. This bootstrap role is attached to the EC2 instance and is not the EKS cluster role or worker-node role.
+
+Terraform creates the following roles:
+
+- `streamlit-eks-cluster-role` — EKS control-plane permissions.
+- `streamlit-eks-node-role` — worker-node permissions.
+- `streamlit-devops-jenkins-role` — ECR access and EKS deployment permissions.
+
+The AWS Load Balancer Controller also requires a dedicated IAM role and OIDC trust configuration. These resources must be added to the Terraform configuration before claiming that the controller's IAM configuration is fully managed by Terraform.
+
+The lab uses public subnets and an Internet Gateway. Restrict the EKS API endpoint to approved client addresses, protect Jenkins with appropriate access controls, and remove temporary lab infrastructure when it is no longer required.
+
 The Terraform workflow includes:
 
 1. Initialize the working directory.
