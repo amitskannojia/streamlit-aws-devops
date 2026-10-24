@@ -449,7 +449,7 @@ The project demonstrates how infrastructure provisioning, application delivery, 
 
 ## 15. AWS DevOps Interview Summary
 
-"My project is an end-to-end CI/CD platform for deploying a Python Streamlit application on Amazon EKS.
+"My project is an end-to-end CI/CD platform for deploying a Python Streamlit application on Amazon EKS".
 
 I used Terraform to provision AWS infrastructure, including networking, IAM resources, ECR, the EKS cluster, add-ons, and the managed node group. I configured Jenkins to check out the code, run tests, build a Docker image, push it to Amazon ECR, and deploy the application to Kubernetes.
 
