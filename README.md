@@ -510,5 +510,215 @@ If webhook delivery succeeds but Jenkins does not start a build, check **Jenkins
 I also troubleshot an image-pull failure by examining Kubernetes events and correcting the container image reference. This project helped me develop practical skills in Terraform, AWS IAM, Jenkins, Docker, ECR, EKS, Kubernetes, and CI/CD troubleshooting."
 
 
+## 📊 Prometheus and Grafana Monitoring
 
-GitHub webhook CI/CD test
+### Overview
+
+Integrated Prometheus and Grafana into the AWS EKS DevOps project to monitor Kubernetes resources and visualize application metrics. Prometheus collects metrics from configured monitoring targets, while Grafana provides dashboards for monitoring target health, Streamlit pod CPU usage, memory usage, and running pod count.
+
+### Monitoring Architecture
+
+```text
+Streamlit Application
+        |
+        v
+Amazon EKS Kubernetes Cluster
+        |
+        v
+Prometheus
+(Metrics Collection and Storage)
+        |
+        v
+Grafana
+(Dashboards and Visualization)
+        |
+        v
+Monitoring and Troubleshooting
+```
+
+### Technologies Used
+
+- **Amazon EKS:** Runs the containerized Streamlit application.
+- **Prometheus:** Collects and stores metrics from configured Kubernetes monitoring targets.
+- **Grafana:** Visualizes Prometheus metrics through dashboards and panels.
+- **kube-state-metrics:** Exposes Kubernetes object state metrics.
+- **Node Exporter:** Exposes node-level system metrics.
+- **PromQL:** Queries Prometheus metrics for monitoring and analysis.
+- **kubectl:** Manages and validates Kubernetes resources.
+
+### Monitoring Namespace
+
+Monitoring components are deployed in the `monitoring` namespace.
+
+Check monitoring pods:
+
+```bash
+kubectl get pods -n monitoring
+```
+
+Check monitoring services:
+
+```bash
+kubectl get svc -n monitoring
+```
+
+Check Streamlit application pods:
+
+```bash
+kubectl get pods -n streamlit
+```
+
+Check pod CPU and memory metrics:
+
+```bash
+kubectl top pods -n streamlit
+```
+
+Check node CPU and memory metrics:
+
+```bash
+kubectl top nodes
+```
+
+> Note: The `kubectl top` commands require a functioning Kubernetes Metrics Server.
+
+### Accessing Grafana and Prometheus
+
+Grafana can be accessed through port forwarding:
+
+```bash
+kubectl port-forward -n monitoring service/monitoring-grafana 3000:80
+```
+
+Prometheus can be accessed by identifying its service:
+
+```bash
+kubectl get svc -n monitoring
+```
+
+For this installation, the Prometheus service is:
+
+```text
+monitoring-kube-prometheus-prometheus
+```
+
+Start Prometheus port forwarding:
+
+```bash
+kubectl port-forward -n monitoring service/monitoring-kube-prometheus-prometheus 9090:9090
+```
+
+Access the interfaces through the corresponding forwarded local ports:
+
+- Grafana: `http://localhost:3000`
+- Prometheus: `http://localhost:9090`
+
+Keep the port-forwarding sessions running while accessing these interfaces. When connecting to a remote EC2 instance from a local computer, configure SSH port forwarding to access the remote ports securely.
+
+### Grafana Dashboard
+
+Created a dashboard named **AWS EKS Monitoring Dashboard** with the following panels:
+
+| Panel | Purpose |
+|---|---|
+| Prometheus Target Status | Checks the status of configured Prometheus scrape targets |
+| Streamlit Pod CPU Usage | Visualizes CPU consumption for Streamlit pods |
+| Streamlit Pod Memory | Visualizes working-set memory usage for Streamlit pods |
+| Running Streamlit Pods | Displays the number of Streamlit pods in the Running phase |
+
+The dashboard uses Prometheus as its data source and PromQL queries to retrieve metrics.
+
+### Prometheus Queries
+
+**1. Prometheus target health**
+
+```promql
+up
+```
+
+Returns `1` for a successfully scraped target and `0` for a target that is configured but not responding.
+
+**2. Streamlit pod CPU usage**
+
+```promql
+sum by (pod) (
+  rate(container_cpu_usage_seconds_total{namespace="streamlit", container!="", container!="POD"}[5m])
+)
+```
+
+Estimates CPU consumption over a five-minute window for matching containers in the Streamlit namespace.
+
+**3. Streamlit pod memory usage**
+
+```promql
+sum by (pod) (
+  container_memory_working_set_bytes{namespace="streamlit", container!="", container!="POD"}
+)
+```
+
+Displays working-set memory usage for matching Streamlit containers.
+
+**4. Running Streamlit pod count**
+
+```promql
+count(kube_pod_status_phase{namespace="streamlit", phase="Running"} == 1)
+```
+
+Counts Streamlit pods in the Running phase using metrics provided by kube-state-metrics.
+
+> Metric availability depends on the Prometheus scrape configuration and installed exporters. An empty query result requires checking whether the relevant metric is available.
+
+### Implementation Steps
+
+1. Verified Prometheus and Grafana services in the Kubernetes monitoring namespace.
+2. Accessed Grafana and opened the dashboard editor.
+3. Configured Prometheus as the dashboard data source.
+4. Created the Prometheus Target Status panel using the `up` query.
+5. Created the Streamlit Pod CPU Usage panel.
+6. Created the Streamlit Pod Memory panel.
+7. Created the Running Streamlit Pods panel.
+8. Saved the AWS EKS Monitoring Dashboard.
+9. Validated the monitoring targets and visualized available metrics.
+
+### Benefits
+
+- Centralized visualization of available Kubernetes metrics.
+- Visibility into Streamlit pod CPU and memory consumption.
+- Monitoring-target health checks through Prometheus.
+- Improved troubleshooting of container and Kubernetes resource issues.
+- A foundation for extending the project with Grafana alerts and additional operational dashboards.
+
+### Future Enhancements
+
+- Configure Grafana alert rules for CPU, memory, and target availability.
+- Add alert notifications through an appropriate notification channel.
+- Extend dashboards to include node resource utilization and pod restarts.
+- Integrate monitoring validation into the CI/CD workflow.
+- Configure persistent dashboard provisioning and backup.
+
+### Troubleshooting
+
+**Grafana or Prometheus page stops responding**
+
+Port forwarding stops when its terminal session ends. Restart the corresponding `kubectl port-forward` command.
+
+**Grafana shows No data**
+
+Verify the Prometheus data source, check Prometheus targets, and confirm that the required metric exists.
+
+**CPU or memory panel is empty**
+
+Check that the container metrics are available and being scraped by Prometheus.
+
+**Running pod count is empty**
+
+Verify that kube-state-metrics is running and that Prometheus is scraping `kube_pod_status_phase`.
+
+**`kubectl top` returns an error**
+
+Verify that Metrics Server is installed and healthy.
+
+---
+
+**Monitoring implementation status:** Prometheus and Grafana were accessed successfully, the target-health panel was created, and the CPU, memory, and running-pod panels were completed in the Grafana dashboard.
+
